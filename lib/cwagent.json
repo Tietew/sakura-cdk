@@ -1,0 +1,51 @@
+{
+  "metrics": {
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}"
+    },
+    "metrics_collected": {
+      "collectd": {
+        "metrics_aggregation_interval": 60
+      },
+      "disk": {
+        "measurement": ["used_percent"],
+        "metrics_collection_interval": 60,
+        "resources": ["/"],
+        "drop_device": true
+      },
+      "mem": {
+        "measurement": ["mem_used_percent"],
+        "metrics_collection_interval": 60
+      }
+    }
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "/var/log/auth.log*",
+            "log_group_name": "/var/log/auth.log",
+            "timestamp_format": "%b %-d %H:%M:%S "
+          },
+          {
+            "file_path": "/var/log/mail.log*",
+            "log_group_name": "/var/log/mail.log",
+            "timestamp_format": "%b %-d %H:%M:%S "
+          },
+          {
+            "file_path": "/var/log/kern.log*",
+            "log_group_name": "/var/log/kern.log",
+            "timestamp_format": "%b %-d %H:%M:%S "
+          },
+          {
+            "file_path": "/var/log/syslog*",
+            "log_group_name": "/var/log/syslog",
+            "timestamp_format": "%b %-d %H:%M:%S "
+          }
+        ]
+      }
+    },
+    "log_stream_name": "{instance_id}"
+  }
+}
