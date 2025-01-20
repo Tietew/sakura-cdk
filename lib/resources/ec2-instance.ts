@@ -116,13 +116,14 @@ export class Ec2Instance extends cdk.Resource {
       resourceArns: ['*'],
     });
 
-    /*
-    const eip = new ec2.CfnEIP(this, 'EIP-Temporary');
-    new ec2.CfnEIPAssociation(this, 'EIPAssociation', {
+    const eip = new ec2.CfnEIP(this, 'EIP');
+    eip.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
+    cdk.Tags.of(eip).add('Name', 'sakura');
+    const eipAlloc = new ec2.CfnEIPAssociation(this, 'EIPAssociation', {
       instanceId: instance.instanceId,
       allocationId: eip.attrAllocationId,
     });
-    */
+    eipAlloc.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
 
     const ipv6 = new custom.AwsCustomResource(this, 'GetInstanceIpv6Address', {
       installLatestAwsSdk: false,
@@ -137,13 +138,11 @@ export class Ec2Instance extends cdk.Resource {
       },
     }).getResponseField('NetworkInterfaces.0.Ipv6Address');
 
-    /*
     new route53.ARecord(this, 'ARecord', {
       zone: props.hostedZone,
       recordName: hostname,
       target: route53.RecordTarget.fromIpAddresses(eip.attrPublicIp),
     });
-    */
     new route53.AaaaRecord(this, 'AaaaRecord', {
       zone: props.hostedZone,
       recordName: hostname,
