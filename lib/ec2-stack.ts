@@ -46,7 +46,7 @@ export class Ec2Stack extends cdk.Stack {
     const instance = new Ec2Instance(this, 'Ec2', { vpc, topic: props.topic, hostedZone });
     backupPlan.addSelection('ec2', { resources: [backup.BackupResource.fromEc2Instance(instance.instance)] });
 
-    const vmail = new FileSystem(this, 'Vmail', { vpc });
+    const vmail = new FileSystem(this, 'Vmail', { vpc, topic: props.topic });
     vmail.grantRootAccess(instance.instance);
     vmail.connections.allowDefaultPortFrom(instance.securityGroup);
     backupPlan.addSelection('efs', { resources: [backup.BackupResource.fromEfsFileSystem(vmail)] });

@@ -109,12 +109,6 @@ export class Ec2Instance extends cdk.Resource {
         'ForAllValues:StringLike': { 'route53:ChangeResourceRecordSetsNormalizedRecordNames': '_acme-challenge.*' },
       },
     });
-    // EC2
-    iam.Grant.addToPrincipal({
-      grantee: instance,
-      actions: ['ssm:StartSession', 'ssm:TerminateSession'],
-      resourceArns: ['*'],
-    });
 
     const eip = new ec2.CfnEIP(this, 'EIP');
     eip.applyRemovalPolicy(cdk.RemovalPolicy.RETAIN);
@@ -151,7 +145,7 @@ export class Ec2Instance extends cdk.Resource {
 
     const slackAction = new actions.SnsAction(props.topic);
     new Alarm(this, 'CPUUtilizationAlarm', {
-      alarmDescription: `[${this.node.path}] ${hostname} CPUUtilization >= 80`,
+      alarmDescription: `[${this.node.path}] ${hostname} CPUUtilization >= 80 in 15 mins`,
       metric: new cloudwatch.Metric({
         namespace: 'AWS/EC2',
         metricName: 'CPUUtilization',
@@ -163,9 +157,23 @@ export class Ec2Instance extends cdk.Resource {
       alarmActions: [slackAction],
       okActions: [slackAction],
     });
-
+    new Alarm(this, 'HighCreditUsageAlarm', {
+      alarmDescription: `[${this.node.path}] ${hostname} CPUCreditUsage > 20 in 1 hour`,
+      metric: new cloudwatch.Metric({
+        namespace: 'AWS/EC2',
+        metricName: 'CPUCreditUsage',
+        dimensionsMap: { InstanceId: instance.instanceId },
+        period: cdk.Duration.hours(1),
+      }),
+      threshold: 20,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      evaluationPeriods: 1,
+      treatMissingData: cloudwatch.TreatMissingData.IGNORE,
+      alarmActions: [slackAction],
+      okActions: [slackAction],
+    });
     new Alarm(this, 'AutoReboot', {
-      alarmDescription: `[${this.node.path}] ${hostname} StatusCheckFailed`,
+      alarmDescription: `[${this.node.path}] ${hostname} StatusCheckFailed in 10 mins`,
       metric: new cloudwatch.Metric({
         namespace: 'AWS/EC2',
         metricName: 'StatusCheckFailed',
